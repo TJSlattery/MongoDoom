@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MongoDoom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body { margin: 0; background: #111; color: #c8c8c8; font: 13px/1.4 ui-monospace, Menlo, Consolas, monospace; }
+    #layout { display: flex; flex-wrap: wrap; gap: 20px; padding: 20px; justify-content: center; align-items: flex-start; }
+    #crt { background: #000; padding: 14px; border-radius: 18px; box-shadow: 0 0 0 4px #2a2a2a, 0 0 40px #000 inset, 0 0 30px #1b5e20; }
+    canvas { display: block; width: 640px; height: 480px; image-rendering: pixelated; background: #000; outline: none; }
+    #side { width: 420px; max-width: 100%; }
+    h1 { margin: 0 0 6px; font-size: 20px; color: #13aa52; letter-spacing: 1px; }
+    h2 { margin: 18px 0 6px; font-size: 13px; color: #8bc34a; text-transform: uppercase; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat { background: #1c1c1c; border: 1px solid #333; padding: 8px; border-radius: 6px; }
+    .stat b { display: block; font-size: 22px; color: #fff; }
+    .snip { background: #1c1c1c; border: 1px solid #333; border-radius: 6px; padding: 8px; margin: 6px 0; position: relative; }
+    .snip pre { margin: 0; white-space: pre-wrap; word-break: break-all; color: #9ccc65; }
+    .snip button { position: absolute; top: 6px; right: 6px; background: #2e7d32; color: #fff; border: 0; border-radius: 4px; cursor: pointer; }
+    kbd { background: #2a2a2a; border: 1px solid #444; border-radius: 3px; padding: 0 4px; }
+    #status { color: #ff9800; }
+  </style>
+</head>
+<body>
+  <div id="layout">
+    <div id="crt"><canvas id="screen" width="320" height="200" tabindex="0"></canvas></div>
+    <div id="side">
+      <h1>MONGODOOM</h1>
+      <div>Every pixel column below was computed by a MongoDB aggregation pipeline. This page only paints strips. <span id="status">connecting...</span></div>
+
+      <h2>Live telemetry</h2>
+      <div class="stats">
+        <div class="stat">mongod round-trip (avg)<b><span id="ms">-</span> ms</b></div>
+        <div class="stat">frames / s<b id="fps">0</b></div>
+        <div class="stat">game tick<b id="tick">0</b></div>
+      </div>
+
+      <h2>Controls</h2>
+      <div><kbd>W</kbd><kbd>S</kbd> move &nbsp; <kbd>A</kbd><kbd>D</kbd> strafe &nbsp; <kbd>&larr;</kbd><kbd>&rarr;</kbd> turn &nbsp; <kbd>Space</kbd>/click shoot &nbsp; <kbd>E</kbd> open door &nbsp; <kbd>R</kbd> reset</div>
+
+      <h2>Poke the live game from mongosh</h2>
+      <div class="snip"><button data-copy="db.viewport_ascii.findOne({}, { _id: 0 })">copy</button><pre>db.viewport_ascii.findOne({}, { _id: 0 })</pre></div>
+      <div class="snip"><button data-copy='db.games.updateOne({ _id: "doom" }, { $set: { "player.hp": 9999, "player.ammo": 999 } })'>copy</button><pre>db.games.updateOne({ _id: "doom" },
+  { $set: { "player.hp": 9999, "player.ammo": 999 } })</pre></div>
+      <div class="snip"><button data-copy='db.games.updateOne({ _id: "doom" }, { $push: { enemies: { id: 99, x: 18.5, y: 50.0, hp: 60, hurtTicks: 0, attackTicks: 0, swingTicks: 0, awake: true } } })'>copy</button><pre>db.games.updateOne({ _id: "doom" },
+  { $push: { enemies: { id: 99, x: 18.5, y: 50.0,
+    hp: 60, hurtTicks: 0, attackTicks: 0, swingTicks: 0, awake: true } } })</pre></div>
+    </div>
+  </div>
+  <script src="/client.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "mongodoom",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "fetch-wad": "node scripts/fetch-wad.js",
+    "seed": "node scripts/seed.js",
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bson": "^7.3.4",
+    "mongodb": "^7.9.1",
+    "pngjs": "^7.0.0",
+    "ws": "^8.23.0"
+  }
+}
