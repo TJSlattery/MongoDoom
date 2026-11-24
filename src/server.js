@@ -26,6 +26,23 @@ export function decodeKeys(k) {
   };
 }
 
+/** Latest key state plus "latched" use/shoot presses: a tap that starts and ends between two ticks still counts once. */
+export class InputState {
+  constructor() { this.current = decodeKeys(0); this.latched = { shoot: false, use: false }; }
+  set(k) {
+    this.current = decodeKeys(k);
+    if (this.current.shoot) this.latched.shoot = true;
+    if (this.current.use) this.latched.use = true;
+  }
+  /** Input for the next tick; clears the latches. */
+  take() {
+    const out = { ...this.current, shoot: this.current.shoot || this.latched.shoot, use: this.current.use || this.latched.use };
+    this.latched = { shoot: false, use: false };
+    return out;
+  }
+  reset() { this.current = decodeKeys(0); this.latched = { shoot: false, use: false }; }
+}
+
 export async function startServer({ port = Number(process.env.PORT ?? 3000), uri = process.env.MONGODB_URI } = {}) {
   const { client, db } = await connect(uri);
   if (!(await db.collection("templates").findOne({ _id: "doom_initial" }))) {
@@ -36,9 +53,10 @@ export async function startServer({ port = Number(process.env.PORT ?? 3000), uri
   const assetsDoc = await db.collection("assets").findOne({ _id: "doom1_e1m1_pack" });
   const assetsJson = JSON.stringify(assetsDoc);
 
-  let input = decodeKeys(0);
+  const input = new InputState();
   let resetRequested = false;
   let running = true;
+  let inFlight = Promise.resolve(); // the tick currently running, awaited on shutdown
   const recent = []; // last 30 round-trips; the client shows the average so the number is readable
 
   const server = http.createServer(async (req, res) => {
@@ -69,18 +87,22 @@ export async function startServer({ port = Number(process.env.PORT ?? 3000), uri
   const wss = new WebSocketServer({ server });
   wss.on("connection", (ws) => {
     ws.on("message", (data) => {
-      try { input = decodeKeys(JSON.parse(data.toString()).k); } catch { /* ignore malformed input */ }
+      try { input.set(JSON.parse(data.toString()).k); } catch { /* ignore malformed input */ }
     });
-    ws.on("close", () => { if (wss.clients.size === 0) input = decodeKeys(0); });
+    ws.on("close", () => { if (wss.clients.size === 0) input.reset(); });
   });
 
-  async function loop() {
+  function loop() {
+    inFlight = runTick();
+  }
+
+  async function runTick() {
     const started = performance.now();
     try {
       if (resetRequested) { resetRequested = false; await resetGame(db); }
       if (wss.clients.size > 0) {
         const t0 = performance.now();
-        const doc = await games.findOneAndUpdate({ _id: "doom" }, buildTickPipeline(input), TICK_OPTIONS);
+        const doc = await games.findOneAndUpdate({ _id: "doom" }, buildTickPipeline(input.take()), TICK_OPTIONS);
         const mongodMs = Math.round((performance.now() - t0) * 10) / 10;
         recent.push(mongodMs);
         if (recent.length > 30) recent.shift();
@@ -100,6 +122,7 @@ export async function startServer({ port = Number(process.env.PORT ?? 3000), uri
 
   async function close() {
     running = false;
+    await inFlight;
     for (const ws of wss.clients) ws.terminate();
     await new Promise((r) => wss.close(r));
     await new Promise((r) => server.close(r));

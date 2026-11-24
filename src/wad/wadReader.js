@@ -79,7 +79,7 @@ export class Wad {
     const sectors = [];
     for (let i = 0; i < cb.length / 26; i++) {
       const o = i * 26;
-      sectors.push({ floorH: cb.readInt16LE(o), ceilH: cb.readInt16LE(o + 2), special: cb.readInt16LE(o + 22), tag: cb.readInt16LE(o + 24) });
+      sectors.push({ floorH: cb.readInt16LE(o), ceilH: cb.readInt16LE(o + 2), light: cb.readInt16LE(o + 20), special: cb.readInt16LE(o + 22), tag: cb.readInt16LE(o + 24) });
     }
 
     const tb = m("THINGS");

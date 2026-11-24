@@ -1,2 +1,13 @@
 node_modules/
 .DS_Store
+
+# downloaded on demand by `npm run fetch-wad` (shareware data, not redistributed here)
+assets/DOOM1.WAD
+
+# local-only notes and design docs
+AGENTS.md
+CLAUDE.md
+assets/mongodoom_tier_1_implementation_plan.md
+.opencode/
+.scratch/
+.s/

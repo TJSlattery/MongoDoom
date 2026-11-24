@@ -56,6 +56,9 @@ test("static files, assets API, and path traversal protection", async () => {
   assert.ok(Object.keys(assets.wallTextures).length >= 1);
   assert.ok(assets.sprites.TROOA1.startsWith("data:image/png;base64,"));
   assert.ok(assets.sprites.SHTFA0 && assets.hud.STBAR);
+  assert.ok(assets.sky.startsWith("data:image/png") && assets.hud.STTNUM0 && assets.hud.STARMS && assets.hud.STFST00, "sky and Doom status-bar art");
+  assert.ok(assets.sprites.TROOA5 && assets.sprites.POSSA3 && assets.sprites.BAL1A0 && assets.sprites.BEXPA0, "rotations, fireballs, barrels");
+  assert.ok(Object.keys(assets.flats).length >= 3 && assets.flats["1"].startsWith("data:image/png"));
 });
 
 test("websocket streams valid frames under input; reset restores the template; clean shutdown", async () => {
@@ -76,9 +79,10 @@ test("websocket streams valid frames under input; reset restores the template; c
     assert.ok(m.mongodMs >= 0 && m.mongodMs < 1000);
     assert.equal(typeof m.mongodAvgMs, "number");
     assert.equal(m.frame.columns.length, 160);
-    assert.ok(m.frame.columns.every((c) => Number.isInteger(c.dx) && Number.isInteger(c.dh) && c.perpDist === undefined));
+    assert.ok(m.frame.columns.every((c) => Number.isInteger(c.dx) && c.perpDist === undefined && c.w.every((w) => Number.isInteger(w.dh) && w.dh > 0) && c.f.every((f) => typeof f.c === "string")));
     assert.ok(Array.isArray(m.frame.sprites));
     assert.ok(typeof m.frame.hud.weaponSprite === "string");
+    assert.ok(Array.isArray(m.frame.hud.draw) && m.frame.hud.draw[0].s === "STBAR" && m.frame.rh >= 1);
   }
   const ticks = msgs.map((m) => m.frame.tick);
   assert.ok(ticks.every((t, i) => i === 0 || t > ticks[i - 1]), "ticks strictly increase");

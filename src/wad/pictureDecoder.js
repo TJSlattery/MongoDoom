@@ -69,3 +69,11 @@ export function fromDataUrl(url) {
   const png = PNG.sync.read(Buffer.from(url.split(",")[1], "base64"));
   return { width: png.width, height: png.height, rgba: png.data };
 }
+
+/** Horizontal mirror; Doom's flipped-sprite offset is width - leftOfs. */
+export function mirror(pic) {
+  const rgba = Buffer.alloc(pic.rgba.length);
+  for (let y = 0; y < pic.height; y++)
+    for (let x = 0; x < pic.width; x++) pic.rgba.copy(rgba, (y * pic.width + (pic.width - 1 - x)) * 4, (y * pic.width + x) * 4, (y * pic.width + x) * 4 + 4);
+  return { ...pic, rgba, leftOfs: pic.width - pic.leftOfs };
+}

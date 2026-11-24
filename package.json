@@ -1,10 +1,11 @@
 {
   "name": "mongodoom",
   "version": "0.1.0",
+  "description": "Doom E1M1 where the game engine is a MongoDB aggregation pipeline and the browser only paints.",
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19"
   },
   "scripts": {
     "fetch-wad": "node scripts/fetch-wad.js",

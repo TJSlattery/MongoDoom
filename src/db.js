@@ -4,8 +4,14 @@ import { MongoClient } from "mongodb";
 export const DEFAULT_URI = "mongodb://127.0.0.1:27017/mongodoom";
 
 export async function connect(uri = process.env.MONGODB_URI || DEFAULT_URI) {
-  const client = new MongoClient(uri);
-  await client.connect();
+  const client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
+  try {
+    await client.connect();
+    await client.db().command({ ping: 1 });
+  } catch (e) {
+    await client.close().catch(() => {});
+    throw new Error(`Could not connect to MongoDB at ${uri.replace(/\/\/[^@/]*@/, "//***@")} (${e.message}).\nStart mongod, or set MONGODB_URI.`);
+  }
   return { client, db: client.db() };
 }
 

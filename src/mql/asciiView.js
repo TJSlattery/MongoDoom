@@ -1,6 +1,6 @@
 // Read-only db.viewport_ascii pipeline: renders games.frame as 32 strings x 80 chars of shaded glyphs.
 import {
-  add, sub, mul, div, floor, min, gte, lt, and, cond, arrAt, mapArr, range, reduceArr, seqLet, lit, eq, sizeArr,
+  add, sub, mul, div, floor, min, gte, gt, lt, and, cond, arrAt, mapArr, filterArr, range, reduceArr, seqLet, lit, eq, sizeArr,
 } from "./expr.js";
 import { VIEW_H } from "./constants.js";
 
@@ -15,13 +15,14 @@ export const asciiPipeline = (() => {
     [
       ["i", "$$this"],
       ["col", arrAt("$frame.columns", mul("$$i", 2))],
+      ["hits", filterArr("$$col.w", "wp", inRect("$$y", "$$wp.dy", "$$wp.dh"))],
       ["spriteHit", { $anyElementTrue: [mapArr("$frame.sprites", "sp",
         { $anyElementTrue: [mapArr("$$sp.strips", "st",
           and(eq("$$st.dx", mul("$$i", 4)), inRect("$$y", "$$st.dy", "$$st.dh")))] })] }],
     ],
     cond("$$spriteHit", "M",
-      cond(inRect("$$y", "$$col.dy", "$$col.dh"),
-        arrAt(lit(GLYPHS), min(3, floor(div("$$col.shade", 0.22)))),
+      cond(gt(sizeArr("$$hits"), 0),
+        arrAt(lit(GLYPHS), min(3, floor(div(arrAt("$$hits.shade", 0), 0.22)))),
         cond(lt("$$y", VIEW_H / 2), " ", "·")))
   );
 

@@ -59,8 +59,37 @@ export function normalizeWall(img) {
   return out;
 }
 
+/** Normalize a door or switch texture: drawn once (no tiling), left-aligned and bottom-aligned, 2 world units per column
+ *  horizontally... i.e. the first `width/2` columns hold the picture, so a 64-unit door/switch face shows it at native size. */
+export function normalizeSolo(img) {
+  const out = blank(64, 128);
+  for (let i = 0; i < out.rgba.length; i += 4) { out.rgba[i] = out.rgba[i + 1] = out.rgba[i + 2] = 96; out.rgba[i + 3] = 255; }
+  const h = Math.min(128, img.height);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < 64 && x * 2 < img.width; x++) {
+      const so = (y * img.width + x * 2) * 4;
+      if (img.rgba[so + 3] === 0) continue;
+      const o = ((128 - h + y) * 64 + x) * 4;
+      out.rgba[o] = img.rgba[so]; out.rgba[o + 1] = img.rgba[so + 1]; out.rgba[o + 2] = img.rgba[so + 2];
+    }
+  return out;
+}
+
 export function buildWallTexture(wad, defs, name, palette) {
-  const def = defs.get(name);
+  const solo = name.endsWith("#solo");
+  const def = defs.get(solo ? name.slice(0, -5) : name);
   if (!def) return null;
-  return normalizeWall(compositeTexture(wad, def, palette));
+  const img = compositeTexture(wad, def, palette);
+  return solo ? normalizeSolo(img) : normalizeWall(img);
+}
+
+/** The 256x128 sky as a seamless opaque image (rows below the patch repeat its last row). */
+export function buildSky(wad, defs, palette) {
+  const img = compositeTexture(wad, defs.get("SKY1"), palette);
+  for (let y = 1; y < img.height; y++)
+    for (let x = 0; x < img.width; x++) {
+      const o = (y * img.width + x) * 4;
+      if (img.rgba[o + 3] === 0) img.rgba.copy(img.rgba, o, o - img.width * 4, o - img.width * 4 + 4);
+    }
+  return img;
 }

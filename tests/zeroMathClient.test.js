@@ -64,8 +64,8 @@ test("client render() is loop-only painting of precomputed strips", () => {
   const src = fs.readFileSync(path.join(publicDir, "client.js"), "utf8");
   const region = src.slice(src.indexOf("// BEGIN RENDER"), src.indexOf("// END RENDER"));
   assert.ok(region.length > 100, "render region markers present");
-  assert.ok(region.includes("for (const col of frame.columns)"));
+  assert.ok(region.includes("for (const col of frame.columns)") && region.includes("for (const fl of col.f)") && region.includes("for (const w of col.w)"));
   assert.ok(region.includes("for (const sp of frame.sprites)") && region.includes("for (const st of sp.strips)"));
-  assert.ok(region.includes("drawImage(wallImgs[col.tex], col.sx, col.sy, 1, col.sh, col.dx, col.dy, 2, col.dh)"));
+  assert.ok(region.includes("drawImage(wallImgs[w.tex], w.sx, w.sy, 1, w.sh, col.dx, w.dy, 2, w.dh)"));
   assert.ok(region.includes("drawImage(spriteImgs[sp.frame], st.sx, st.sy, 1, st.sh, st.dx, st.dy, 2, st.dh)"));
 });

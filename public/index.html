@@ -20,6 +20,12 @@
     .snip button { position: absolute; top: 6px; right: 6px; background: #2e7d32; color: #fff; border: 0; border-radius: 4px; cursor: pointer; }
     kbd { background: #2a2a2a; border: 1px solid #444; border-radius: 3px; padding: 0 4px; }
     #status { color: #ff9800; }
+    .blurb { margin: 0 0 8px; }
+    details { margin-top: 18px; }
+    #json { max-height: 360px; overflow: auto; margin: 6px 0 0; padding: 8px; background: #1c1c1c; border: 1px solid #333; border-radius: 6px; color: #9ccc65; font-size: 11px; }
+    .jsonbar { margin-top: 6px; }
+    .jsonbar button { background: #2e7d32; color: #fff; border: 0; border-radius: 4px; cursor: pointer; margin-right: 6px; }
+    summary { cursor: pointer; font-size: 13px; color: #8bc34a; text-transform: uppercase; }
   </style>
 </head>
 <body>
@@ -27,7 +33,8 @@
     <div id="crt"><canvas id="screen" width="320" height="200" tabindex="0"></canvas></div>
     <div id="side">
       <h1>MONGODOOM</h1>
-      <div>Every pixel column below was computed by a MongoDB aggregation pipeline. This page only paints strips. <span id="status">connecting...</span></div>
+      <p class="blurb">Each tick, one MongoDB aggregation pipeline updates the game document: it moves the player and monsters, casts 160 rays and decides which walls, floors and sprites are visible. The server just relays the finished frame, and this page only paints it, with no game math.</p>
+      <div>Connection: <span id="status">connecting...</span></div>
 
       <h2>Live telemetry</h2>
       <div class="stats">
@@ -39,13 +46,25 @@
       <h2>Controls</h2>
       <div><kbd>W</kbd><kbd>S</kbd> move &nbsp; <kbd>A</kbd><kbd>D</kbd> strafe &nbsp; <kbd>&larr;</kbd><kbd>&rarr;</kbd> turn &nbsp; <kbd>Space</kbd>/click shoot &nbsp; <kbd>E</kbd> open door &nbsp; <kbd>R</kbd> reset</div>
 
-      <h2>Poke the live game from mongosh</h2>
+      <details>
+        <summary>Inspect what MongoDB returns</summary>
+        <div class="jsonbar">
+          <button id="jsonPause">pause</button>
+          <button id="jsonCopy">copy full JSON</button>
+          <span>updates once a second; long lists are shortened here</span>
+        </div>
+        <pre id="json">waiting for a frame...</pre>
+      </details>
+
+      <details>
+        <summary>Poke the live game from mongosh</summary>
       <div class="snip"><button data-copy="db.viewport_ascii.findOne({}, { _id: 0 })">copy</button><pre>db.viewport_ascii.findOne({}, { _id: 0 })</pre></div>
       <div class="snip"><button data-copy='db.games.updateOne({ _id: "doom" }, { $set: { "player.hp": 9999, "player.ammo": 999 } })'>copy</button><pre>db.games.updateOne({ _id: "doom" },
   { $set: { "player.hp": 9999, "player.ammo": 999 } })</pre></div>
-      <div class="snip"><button data-copy='db.games.updateOne({ _id: "doom" }, { $push: { enemies: { id: 99, x: 18.5, y: 50.0, hp: 60, hurtTicks: 0, attackTicks: 0, swingTicks: 0, awake: true } } })'>copy</button><pre>db.games.updateOne({ _id: "doom" },
-  { $push: { enemies: { id: 99, x: 18.5, y: 50.0,
+      <div class="snip"><button data-copy='db.games.updateOne({ _id: "doom" }, { $push: { enemies: { id: 99, x: 59.5, y: 48.5, hp: 60, hurtTicks: 0, attackTicks: 0, swingTicks: 0, awake: true } } })'>copy</button><pre>db.games.updateOne({ _id: "doom" },
+  { $push: { enemies: { id: 99, x: 59.5, y: 48.5,
     hp: 60, hurtTicks: 0, attackTicks: 0, swingTicks: 0, awake: true } } })</pre></div>
+      </details>
     </div>
   </div>
   <script src="/client.js"></script>
